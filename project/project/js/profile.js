@@ -1,9 +1,11 @@
 /**
- * Hedgehog UI Helper Utilities
+ * Profile Management (JS + Fetch)
+ * Updated to include full registration data (DOB, etc.)
  */
 const UI = {
     showToast: (message, type = 'error') => {
         const container = document.getElementById('toast-container');
+        if (!container) return;
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.innerHTML = `<span>${message}</span>`;
@@ -33,7 +35,9 @@ const UI = {
 
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('token');
-    if (!token) {
+    const user_id = localStorage.getItem('user_id');
+    
+    if (!token || !user_id) {
         window.location.href = 'login.html';
         return;
     }
@@ -45,33 +49,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const response = await fetch('php/profile.php', {
                 method: 'GET',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'X-User-ID': user_id,
+                    'Accept': 'application/json'
+                }
             });
 
             const result = await response.json();
 
-            if (response.ok) {
-                document.getElementById('display_name').textContent = result.profile.name;
+            if (response.ok && result.status === "success") {
+                // View Mode Population
+                document.getElementById('display_name').textContent = result.profile.name || 'N/A';
                 document.getElementById('display_username').textContent = result.user.username;
                 document.getElementById('display_email').textContent = result.user.email;
-                document.getElementById('display_age').textContent = result.profile.age;
-                document.getElementById('display_dob').textContent = result.profile.dob;
-                document.getElementById('display_mobile').textContent = result.profile.mobile;
-                document.getElementById('display_id').textContent = `#${result.profile.user_id}`;
+                document.getElementById('display_age').textContent = result.profile.age || 'N/A';
+                document.getElementById('display_dob').textContent = result.profile.dob || 'N/A';
+                document.getElementById('display_mobile').textContent = result.profile.mobile || 'N/A';
+                document.getElementById('display_id').textContent = `#${user_id}`;
                 
-                // Chili Themed Avatar
-                document.getElementById('display_pic').src = `https://api.dicebear.com/7.x/identicon/svg?seed=${result.user.username}&backgroundColor=CD1C18`;
+                const avatar = document.getElementById('display_pic');
+                if (avatar) {
+                    avatar.src = `https://api.dicebear.com/7.x/identicon/svg?seed=${result.user.username}&backgroundColor=CD1C18`;
+                }
 
-                // Set Edit Fields
-                document.getElementById('edit_name').value = result.profile.name;
-                document.getElementById('edit_age').value = result.profile.age;
-                document.getElementById('edit_mobile').value = result.profile.mobile;
+                // Edit Mode Population
+                document.getElementById('edit_name').value = result.profile.name || '';
+                document.getElementById('edit_age').value = result.profile.age || '';
+                document.getElementById('edit_dob').value = result.profile.dob || '';
+                document.getElementById('edit_mobile').value = result.profile.mobile || '';
             } else {
-                localStorage.removeItem('token');
-                window.location.href = 'login.html';
+                if (response.status === 401 || response.status === 404) {
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                } else {
+                    UI.showToast(result.message || "Failed to sync profile.", "error");
+                }
             }
         } catch (error) {
-            UI.showToast("Failed to sync vault data.", "error");
+            UI.showToast("Network failure. Could not sync vault.", "error");
+            console.error(error);
         }
     };
 
@@ -89,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('logoutBtn').addEventListener('click', () => {
         UI.showToast("Session Terminated.", "info");
-        localStorage.removeItem('token');
+        localStorage.clear();
         setTimeout(() => window.location.href = 'login.html', 800);
     });
 
@@ -99,6 +116,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const updateData = {
             name: document.getElementById('edit_name').value,
             age: document.getElementById('edit_age').value,
+            dob: document.getElementById('edit_dob').value,
             mobile: document.getElementById('edit_mobile').value
         };
 
@@ -112,14 +130,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'X-User-ID': user_id
                 },
                 body: JSON.stringify(updateData)
             });
 
             const result = await response.json();
 
-            if (response.ok) {
+            if (response.ok && result.status === "success") {
                 UI.showToast("Vault Updated Successfully.", "success");
                 setTimeout(async () => {
                     profileEdit.style.display = 'none';
@@ -127,7 +146,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     await fetchProfile();
                 }, 1000);
             } else {
-                UI.showToast(result.error || "Update rejected.", "error");
+                UI.showToast(result.message || "Update rejected.", "error");
             }
         } catch (error) {
             UI.showToast("Push failed. Database connection error.", "error");

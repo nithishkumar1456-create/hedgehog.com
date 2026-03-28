@@ -4,6 +4,8 @@
 const UI = {
     showToast: (message, type = 'error') => {
         const container = document.getElementById('toast-container');
+        if (!container) return;
+        
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.innerHTML = `<span>${message}</span>`;
@@ -41,25 +43,31 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     UI.setLoading('submitBtn', true, 'Authenticating...');
 
     try {
+        // Send login data as JSON using fetch
         const response = await fetch('php/login.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
             body: JSON.stringify({ identifier, password })
         });
 
         const result = await response.json();
 
-        if (response.ok) {
-            UI.showToast("Identity Verified. Redirecting...", "success");
+        if (response.ok && result.status === "success") {
+            UI.showToast(result.message || "Identity Verified. Redirecting...", "success");
             localStorage.setItem('token', result.token);
+            localStorage.setItem('user_id', result.user_id);
             setTimeout(() => window.location.href = 'profile.html', 1200);
         } else {
             form.classList.add('shake');
             setTimeout(() => form.classList.remove('shake'), 400);
-            UI.showToast(result.error || "Authentication failed.", "error");
+            UI.showToast(result.message || "Authentication failed.", "error");
         }
     } catch (error) {
         UI.showToast("Network link interrupted. Try again.", "error");
+        console.error("Login error:", error);
     } finally {
         UI.setLoading('submitBtn', false);
     }

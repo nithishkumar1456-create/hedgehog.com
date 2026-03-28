@@ -14,13 +14,13 @@
         <div id="profileView" class="glass-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
                 <span class="brand-text">Member Vault</span>
-                <button id="logoutBtn" style="background: none; border: none; color: var(--red); font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 12px;">Terminate Session</button>
+                <button id="logoutBtn" style="background: none; border: none; color: #ff4444; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 12px;">Terminate Session</button>
             </div>
 
             <img id="display_pic" src="" alt="Avatar" class="profile-avatar">
             
-            <h2 id="display_name" style="margin-bottom: 4px; -webkit-text-fill-color: #ffffff;">Loading...</h2>
-            <p id="display_email" style="font-size: 14px; margin-bottom: 0;"></p>
+            <h2 id="display_name" style="margin-bottom: 4px; color: #ffffff;">Loading...</h2>
+            <p id="display_email" style="font-size: 14px; margin-bottom: 24px; color: #888;"></p>
 
             <div class="profile-stats">
                 <div class="stat-item">
@@ -36,7 +36,11 @@
                     <div id="display_age" class="stat-value">...</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-label">Mobile</div>
+                    <div class="stat-label">Birth Date</div>
+                    <div id="display_dob" class="stat-value">...</div>
+                </div>
+                <div class="stat-item" style="grid-column: span 2;">
+                    <div class="stat-label">Mobile Link</div>
                     <div id="display_mobile" class="stat-value">...</div>
                 </div>
             </div>
@@ -55,24 +59,31 @@
                     <label for="edit_name">Full Legal Name</label>
                     <input type="text" id="edit_name">
                 </div>
+                
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="form-group">
                         <label for="edit_age">Age</label>
                         <input type="number" id="edit_age">
                     </div>
                     <div class="form-group">
-                        <label for="edit_mobile">Mobile Link</label>
-                        <input type="tel" id="edit_mobile">
+                        <label for="edit_dob">Date of Birth</label>
+                        <input type="date" id="edit_dob">
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label for="edit_mobile">Mobile Link</label>
+                    <input type="tel" id="edit_mobile">
+                </div>
+                
                 <div class="form-group">
                     <label for="edit_password">New Security Key (Optional)</label>
                     <input type="password" id="edit_password" placeholder="Leave blank to maintain current">
                 </div>
 
                 <div style="display: flex; gap: 12px; margin-top: 24px;">
-                    <button type="submit" id="saveBtn" class="btn btn-primary" style="margin: 0;">Push Changes</button>
-                    <button type="button" id="cancelEditBtn" class="btn btn-outline" style="margin: 0;">Abort</button>
+                    <button type="submit" id="saveBtn" class="btn btn-primary" style="flex: 1; margin: 0;">Push Changes</button>
+                    <button type="button" id="cancelEditBtn" class="btn btn-outline" style="flex: 1; margin: 0;">Abort</button>
                 </div>
             </form>
         </div>

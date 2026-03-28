@@ -4,6 +4,8 @@
 const UI = {
     showToast: (message, type = 'error') => {
         const container = document.getElementById('toast-container');
+        if (!container) return;
+        
         const toast = document.createElement('div');
         toast.className = `toast ${type}`;
         toast.innerHTML = `<span>${message}</span>`;
@@ -42,6 +44,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
         return;
     }
 
+    // Data package matching backend requirements
     const data = {
         username: document.getElementById('username').value,
         email: document.getElementById('email').value,
@@ -55,22 +58,27 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     UI.setLoading('submitBtn', true, 'Creating Identity...');
 
     try {
+        // Send registration as JSON via fetch
         const response = await fetch('php/register.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
             body: JSON.stringify(data)
         });
 
         const result = await response.json();
 
-        if (response.ok) {
-            UI.showToast("Membership approved! Proceed to Login.", "success");
+        if (response.ok && result.status === "success") {
+            UI.showToast(result.message || "Membership approved! Proceed to Login.", "success");
             setTimeout(() => window.location.href = 'login.html', 1500);
         } else {
-            UI.showToast(result.error || "Application denied.", "error");
+            UI.showToast(result.message || "Application denied.", "error");
         }
     } catch (error) {
         UI.showToast("Network failure. Connection lost.", "error");
+        console.error("Register error:", error);
     } finally {
         UI.setLoading('submitBtn', false);
     }
